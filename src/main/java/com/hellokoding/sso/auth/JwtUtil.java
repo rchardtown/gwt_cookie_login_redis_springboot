@@ -11,18 +11,17 @@ public class JwtUtil {
     private static final String REDIS_SET_ACTIVE_SUBJECTS = "active-subjects";
 
     public static String generateToken(String signingKey, String subject) {
-        long nowMillis = System.currentTimeMillis();
+        //生成JWT时间
+        long nowMillis = System.currentTimeMillis();//获取毫秒级时间戳
         Date now = new Date(nowMillis);
-
+        //设置JWT所存储的信息
         JwtBuilder builder = Jwts.builder()
                 .setSubject(subject)
                 .setIssuedAt(now)
                 .signWith(SignatureAlgorithm.HS256, signingKey);
-
         String token = builder.compact();
 
         RedisUtil.INSTANCE.sadd(REDIS_SET_ACTIVE_SUBJECTS, subject);
-
         return token;
     }
 
@@ -36,12 +35,15 @@ public class JwtUtil {
         if (!RedisUtil.INSTANCE.sismember(REDIS_SET_ACTIVE_SUBJECTS, subject)) {
             return null;
         }
-
         return subject;
     }
 
     public static void invalidateRelatedTokens(HttpServletRequest httpServletRequest) {
         RedisUtil.INSTANCE.srem(REDIS_SET_ACTIVE_SUBJECTS, (String) httpServletRequest.getAttribute("username"));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(System.currentTimeMillis());
     }
 }
 
